@@ -1993,13 +1993,11 @@ def _make_fname(song, ext=None, av=None, subdir=None):
     if not os.path.exists(ddir):
         os.makedirs(ddir)
 
-    streams = streams.get(song)
-
     if ext:
         extension = ext
 
     else:
-        stream = streams.select(streams, 0, audio=av == "audio", m4a_ok=True)
+        stream = streams.select(0, audio=av == "audio", m4a_ok=True)
         extension = stream['ext']
 
     # filename = song.title[:59] + "." + extension
@@ -2120,8 +2118,7 @@ def _download(song, filename, url=None, audio=False, allow_transcode=True):
     # Instance of 'bool' has no 'url' member (some types not inferable)
 
     if not url:
-        streams = streams.get(song)
-        stream = streams.select(streams, 0, audio=audio, m4a_ok=True)
+        stream = streams.select(0, audio=audio, m4a_ok=True)
         url = stream['url']
 
     # if an external download command is set, use it
@@ -2660,13 +2657,13 @@ def get_dl_data(song, mediatype="any"):
     p = get_pafy(song)
     dldata = []
     text = " [Fetching stream info] >"
-    streams = [x for x in p.allstreams]
+    streamlist = [x for x in p.allstreams]
 
     if mediatype == "audio":
-        streams = [x for x in p.audiostreams]
+        streamlist = [x for x in p.audiostreams]
 
-    l = len(streams)
-    for n, stream in enumerate(streams):
+    l = len(streamlist)
+    for n, stream in enumerate(streamlist):
         sys.stdout.write(text + "-" * n + ">" + " " * (l - n - 1) + "<\r")
         sys.stdout.flush()
 
