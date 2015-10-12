@@ -896,7 +896,7 @@ def uea_pad(num, t, direction="<", notrunc=False):
     direction = direction.strip() or "<"
 
     t = ' '.join(t.split('\n'))
-    
+
     # TODO: Find better way of dealing with this?
     if num <= 0:
         return ''
@@ -1182,6 +1182,36 @@ def generate_real_playerargs(song, override, failcount):
 
     return [Config.PLAYER.get] + args + [stream['url']], songdata
 
+
+def fetch_playlist(filepath, count=50):
+    songlist = []
+    matches = []
+    count = int(count)
+
+    try:
+        f = open(filepath)
+        songlist = f.readlines()
+    except:
+        show_message("Error loading songlist: no such file" + filepath)
+        return
+
+    for song in songlist[:count]:
+        # TODO: regex striping
+        q = song[song.find('.')+2:]
+        query = generate_search_qs(q, 0, result_count=50)
+        _search(q, query, splash=False, pre_load=False)
+        results = g.model.songs
+        matches.append(results[0])
+        xprint(results[0].title + " - [" + fmt_time(results[0].length) + "]")
+
+    if matches:
+        g.model.songs = matches
+        g.current_page = 0
+        g.message = "Finished compilation"
+    else:
+        show_message("No matches found")
+
+    g.content = generate_songlist_display()
 
 def playsong(song, failcount=0, override=False):
     """ Play song using config.PLAYER called with args config.PLAYERARGS."""
@@ -3772,7 +3802,8 @@ def main():
         playlist_rename: r'mv\s*(%s\s+%s)$' % (word, word),
         playlist_remove: r'rmp\s*(\d+|%s)$' % word,
         open_view_bynum: r'(open|view)\s*(\d{1,4})$',
-        playlist_rename_idx: r'mv\s*(\d{1,3})\s*(%s)\s*$' % word}
+        playlist_rename_idx: r'mv\s*(\d{1,3})\s*(%s)\s*$' % word,
+        fetch_playlist: r'fetch\s*([\/\.-_a-zA-Z]{1,500})\s*(.{0,2})',}
 
     # compile regexp's
     regx = {func: re.compile(val, re.UNICODE) for func, val in regx.items()}
